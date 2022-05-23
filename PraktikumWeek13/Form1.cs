@@ -24,16 +24,17 @@ namespace PraktikumWeek13
         MySqlDataAdapter sqlAdapter;
         string sqlQuery;
         DataTable dtPemain = new DataTable();
-        DataTable dtTeamNumber = new DataTable();
         DataTable dtTeam = new DataTable();
         DataTable dtNationality = new DataTable();
+        DataTable dtNumeric = new DataTable();
 
         int posisiNow = 0;
 
 
         private void FormPlayer_Load(object sender, EventArgs e)
         {
-            sqlQuery = "SELECT * FROM player_mtc";
+            sqlQuery = "select p.player_id, p.player_name, p.birthdate, n.nation, t.team_name, p.team_number from player p, nationality n, team t where p.nationality_id = n.nationality_id and p.team_id = t.team_id ";
+           // sqlQuery = "SELECT *from player_mtc";
             sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
             sqlAdapter = new MySqlDataAdapter(sqlCommand);
             sqlAdapter.Fill(dtPemain);
@@ -48,13 +49,13 @@ namespace PraktikumWeek13
             cboxTeam.ValueMember = "team id";
             IsiDataPemain(0);
 
-            sqlQuery = "SELECT n.nation as 'nationality', n.nationality_id as 'nationality id'  from team t";
+            sqlQuery = "SELECT n.`nation` as 'nationality', n.nationality_id as 'nationality id'  from nationality n";
             sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
             sqlAdapter = new MySqlDataAdapter(sqlCommand);
             sqlAdapter.Fill(dtNationality);
-            cboxTeam.DataSource = dtNationality;
-            cboxTeam.DisplayMember = "nationality";
-            cboxTeam.ValueMember = "nationality id";
+            cboxNationality.DataSource = dtNationality;
+            cboxNationality.DisplayMember = "nationality";
+            cboxNationality.ValueMember = "nationality id";
             IsiDataPemain(0);
         }
 
@@ -63,11 +64,11 @@ namespace PraktikumWeek13
         {
             //MessageBox.Show(Posisi.ToString());
             tboxPlayerID.Text = dtPemain.Rows[Posisi][0].ToString();
-            tboxPlayerName.Text = dtPemain.Rows[Posisi][2].ToString();
-            dtBirthdate.Text = dtPemain.Rows[Posisi][7].ToString();
+            tboxPlayerName.Text = dtPemain.Rows[Posisi][1].ToString();
+            dtBirthdate.Text = dtPemain.Rows[Posisi][2].ToString();
             cboxNationality.Text = dtPemain.Rows[Posisi][3].ToString();
-            cboxTeam.Text = dtPemain.Rows[Posisi][8].ToString();
-            numTeamNumber.Text = dtPemain.Rows[Posisi][1].ToString();
+            cboxTeam.Text = dtPemain.Rows[Posisi][4].ToString();
+            numTeamNumber.Text = dtPemain.Rows[Posisi][5].ToString();
             posisiNow = Posisi;
         }
 
@@ -110,12 +111,22 @@ namespace PraktikumWeek13
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            sqlQuery = "INSERT INTO pelajar VALUES('" + tboxPlayerID.Text + "', '" + tboxPlayerName.Text + "', '" + dtBirthdate.Value.ToString ("yyyyMMdd") + "', '" + cboxNationality.Text + "', '" + cboxTeam.Text + "', '" + numTeamNumber.Text + "', 0)";
-            sqlConnect.Open();
-            sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
-            sqlCommand.ExecuteNonQuery();
-            sqlConnect.Close();
-            MessageBox.Show("Data Player " + tboxPlayerName.Text + " has been saved.");
+          if(lblAvailability.Text == "Available")
+            {
+                sqlQuery = $"UPDATE player_mtc SET player_name = '" + tboxPlayerName.Text + "', team_number = '" + numTeamNumber.Value.ToString() + "', nationality_id = '" + cboxNationality.SelectedValue.ToString() + "', team_id = '" + cboxTeam.SelectedValue.ToString() + "' where player_id = '" + tboxPlayerID.Text + "' ";
+                sqlConnect.Open();
+                sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
+                sqlCommand.ExecuteNonQuery();
+                sqlConnect.Close();
+                MessageBox.Show("Data Player " + tboxPlayerName.Text + " has been saved.");
+
+            }
+          else if (lblAvailability.Text == "Not Available")
+            {
+                MessageBox.Show("Player Not Available");
+            }
+
+
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
@@ -131,6 +142,25 @@ namespace PraktikumWeek13
         private void cboxTeam_SelectedIndexChanged(object sender, EventArgs e)
         {
            
+        }
+
+        private void numTeamNumber_ValueChanged(object sender, EventArgs e)
+        {
+
+            sqlQuery = $"SELECT * FROM player WHERE team_id='{cboxTeam.SelectedValue}' and team_number={numTeamNumber.Value}";
+            sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
+            sqlAdapter = new MySqlDataAdapter(sqlCommand);
+            sqlAdapter.Fill(dtNumeric);
+
+            if (dtNumeric.Rows.Count > 0)
+            {
+                lblAvailability.Text = "Not Available";
+            }
+            else
+            {
+                lblAvailability.Text = "Available";
+            }
+
         }
     }
 }

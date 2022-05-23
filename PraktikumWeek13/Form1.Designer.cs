@@ -218,6 +218,7 @@
             this.numTeamNumber.Name = "numTeamNumber";
             this.numTeamNumber.Size = new System.Drawing.Size(120, 20);
             this.numTeamNumber.TabIndex = 21;
+            this.numTeamNumber.ValueChanged += new System.EventHandler(this.numTeamNumber_ValueChanged);
             // 
             // FormPlayer
             // 
